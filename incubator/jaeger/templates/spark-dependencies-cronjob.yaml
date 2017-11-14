@@ -1,0 +1,54 @@
+{{- if .Values.spark.enabled -}}
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: "{{ template "jaeger.fullname" . }}-spark"
+  labels:
+    app: "{{ template "jaeger.name" . }}"
+    # jaeger-infra: spark-cronjob
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    component: "spark"
+    heritage: "{{ .Release.Service }}"
+    release: "{{ .Release.Name }}"
+{{- if .Values.spark.annotations }}
+  annotations:
+{{ toYaml .Values.spark.annotations | indent 6 }}
+{{- end }}
+spec:
+  schedule: {{ .Values.spark.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: "{{ template "jaeger.name" . }}"
+            component: "spark"
+            release: "{{ .Release.Name }}"
+            jaeger-infra: spark-instance
+            {{- if .Values.spark.podLabels }}
+            {{ toYaml .Values.spark.podLabels | indent 12 }}
+            {{- end }}
+        spec:
+          nodeSelector:
+            {{ toYaml .Values.spark.nodeSelector | indent 8 }}
+          containers:
+          - name: "{{ template "jaeger.fullname" . }}-spark"
+            image: {{ .Values.spark.image }}:{{ .Values.spark.tag }}
+            imagePullPolicy: {{ .Values.spark.pullPolicy }}
+            env:
+            - name: STORAGE
+              value: {{ .Values.storage.type }}
+            {{ if eq .Values.storage.type "cassandra" }}
+            - name: CASSANDRA_CONTACT_POINTS
+              value: {{ template "cassandra.fullname" . }}:{{ .Values.storage.cassandra.port }}
+            - name: CASSANDRA_KEYSPACE
+              value: jaeger_v1_{{ .Values.cassandra.config.dc_name }}
+            {{ end }}
+            {{ if eq .Values.storage.type "elasticsearch" }}
+            - name: ES_NODES
+              value: {{ template "elasticsearch.client.url" . }}
+            {{ end }}
+            resources:
+            {{ toYaml .Values.spark.resources | indent 10 }}
+          restartPolicy: OnFailure
+{{- end -}}

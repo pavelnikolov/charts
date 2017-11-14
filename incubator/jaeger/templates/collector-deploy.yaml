@@ -1,3 +1,4 @@
+{{- if .Values.collector.enabled -}}
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -34,6 +35,21 @@ spec:
       - name: "{{ template "jaeger.fullname" . }}-collector"
         image: "{{ .Values.collector.image }}:{{ .Values.collector.tag }}"
         imagePullPolicy: {{ .Values.collector.pullPolicy }}
+        env:
+          - name: SPAN_STORAGE_TYPE
+            value: {{ .Values.storage.type }}
+          {{- if eq .Values.storage.type "cassandra" }}
+          - name: CASSANDRA_SERVERS
+            value: {{ template "cassandra.fullname" . }}
+          - name: CASSANDRA_KEYSPACE
+            value: jaeger_v1_{{ .Values.cassandra.config.dc_name }}
+          {{- end }}
+          {{- if eq .Values.storage.type "elasticsearch" }}
+          - name: ES_SERVER_URLS
+            value: {{ template "elasticsearch.client.url" . }}
+          {{- end }}
+          - name: COLLECTOR_ZIPKIN_HTTP_PORT
+            value: "{{ .Values.collector.service.zipkinPort }}"
         ports:
         - containerPort: {{ .Values.collector.service.tchannelPort }}
           protocol: TCP
@@ -43,13 +59,9 @@ spec:
           protocol: TCP
         resources:
 {{ toYaml .Values.collector.resources | indent 10 }}
-        command:
-        - "/go/bin/collector-linux"
-        - "--cassandra.servers={{ template "cassandra.fullname" . }}"
-        - "--cassandra.keyspace=jaeger_v1_{{ .Values.cassandra.config.dc_name }}"
-        - "--collector.zipkin.http-port={{ .Values.collector.service.zipkinPort }}"
 {{- range $key, $value := .Values.collector.cmdlineParams }}
         - "{{ $value }}"
 {{- end }}
       dnsPolicy: {{ .Values.collector.dnsPolicy }}
       restartPolicy: Always
+{{- end -}}

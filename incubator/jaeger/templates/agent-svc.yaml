@@ -1,10 +1,11 @@
+{{- if .Values.agent.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
   name: "{{ template "jaeger.fullname" . }}-agent"
   labels:
     app: "{{ template "jaeger.name" . }}"
-    jaeger-infra: {{ .Values.agent.name }}
+    jaeger-infra: agent-service
     chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
     component: "agent"
     heritage: "{{ .Release.Service }}"
@@ -33,3 +34,4 @@ spec:
     component: "agent"
     release: "{{ .Release.Name }}"
     jaeger-infra: agent-instance
+{{- end -}}

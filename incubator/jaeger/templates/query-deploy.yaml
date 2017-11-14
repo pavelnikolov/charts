@@ -1,3 +1,4 @@
+{{- if .Values.query.enabled -}}
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -34,16 +35,24 @@ spec:
       - name: "{{ template "jaeger.fullname" . }}-query"
         image: "{{ .Values.query.image }}:{{ .Values.query.tag }}"
         imagePullPolicy: {{ .Values.query.pullPolicy }}
+        env:
+          - name: SPAN_STORAGE_TYPE
+            value: {{ .Values.storage.type }}
+          {{ if eq .Values.storage.type "cassandra" }}
+          - name: CASSANDRA_SERVERS
+            value: {{ template "cassandra.fullname" . }}
+          - name: CASSANDRA_KEYSPACE
+            value: jaeger_v1_{{ .Values.cassandra.config.dc_name }}
+          {{ end }}
+          {{ if eq .Values.storage.type "elasticsearch" }}
+          - name: ES_SERVER_URLS
+            value: {{ template "elasticsearch.client.url" . }}
+          {{ end }}
         ports:
         - containerPort: {{ .Values.query.service.targetPort }}
           protocol: TCP
         resources:
 {{ toYaml .Values.query.resources | indent 10 }}
-        command:
-        - "/go/bin/query-linux"
-        - "--cassandra.servers={{ template "cassandra.fullname" . }}"
-        - "--cassandra.keyspace=jaeger_v1_{{ .Values.cassandra.config.dc_name }}"
-        - "--query.static-files=/go/jaeger-ui/"
 {{- range $key, $value := .Values.query.cmdlineParams }}
         - "{{ $value }}"
 {{- end }}
@@ -53,3 +62,4 @@ spec:
             port: {{ .Values.query.service.targetPort }}
       dnsPolicy: {{ .Values.query.dnsPolicy }}
       restartPolicy: Always
+{{- end -}}

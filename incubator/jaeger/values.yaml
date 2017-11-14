@@ -2,6 +2,24 @@
 # This is a YAML-formatted file.
 # Jaeger values are grouped by component. Cassandra values override subchart values
 
+provisionDataStore:
+  cassandra: true
+  elasticsearch: false
+
+storage:
+  type: cassandra # allowed values (cassandra, elasticsearch)
+  cassandra:
+    host: cassandra
+    port: 9042
+    user: user
+    password: password
+  elasticsearch:
+    scheme: http
+    host: elasticsearch
+    port: 9200
+    user: user
+    password: password
+
 # Begin: Override values on the Cassandra subchart to customize for Jaeger
 cassandra:
   image:
@@ -26,7 +44,7 @@ cassandra:
 schema:
   annotations: {}
   image: jaegertracing/jaeger-cassandra-schema
-  tag: 0.8
+  tag: 0.9.0
   pullPolicy: IfNotPresent
   # Acceptable values are test and prod. Default is for production use.
   mode: prod
@@ -40,10 +58,24 @@ schema:
   ## Additional pod labels
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
   podLabels: {}
+
+# Begin: Override values on the Elasticsearch subchart to customize for Jaeger
+elasticsearch:
+  image:
+    tag: "5.6"
+  cluster:
+    name: "tracing"
+  data:
+    persistance:
+      enabled: false
+  rbac:
+    create: false
+
 agent:
+  enabled: true
   annotations: {}
   image: jaegertracing/jaeger-agent
-  tag: 0.8
+  tag: 0.9.0
   pullPolicy: IfNotPresent
   cmdlineParams: {}
   service:
@@ -65,10 +97,12 @@ agent:
   ## Additional pod labels
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
   podLabels: {}
+
 collector:
+  enabled: true
   annotations: {}
   image: jaegertracing/jaeger-collector
-  tag: 0.8
+  tag: 0.9.0
   pullPolicy: IfNotPresent
   dnsPolicy: ClusterFirst
   cmdlineParams: {}
@@ -92,10 +126,12 @@ collector:
   ## Additional pod labels
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
   podLabels: {}
+
 query:
+  enabled: true
   annotations: {}
   image: jaegertracing/jaeger-query
-  tag: 0.8
+  tag: 0.9.0
   pullPolicy: IfNotPresent
   dnsPolicy: ClusterFirst
   cmdlineParams: {}
@@ -106,6 +142,25 @@ query:
     queryPort: 80
     # targetPort: the internal port the UI and API are exposed on
     targetPort: 16686
+  resources: {}
+    # limits:
+    #   cpu: 500m
+    #   memory: 512Mi
+    # requests:
+    #    cpu: 256m
+    #    memory: 128Mi
+  nodeSelector: {}
+  ## Additional pod labels
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+  podLabels: {}
+
+spark:
+  enabled: false
+  annotations: {}
+  image: jaegertracing/spark-dependencies
+  tag: latest
+  pullPolicy: IfNotPresent
+  schedule: "*/1 * * * *"
   resources: {}
     # limits:
     #   cpu: 500m
