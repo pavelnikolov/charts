@@ -20,10 +20,10 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: NETCAT_HOST
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
+            - name: AGENT_HOST
+               valueFrom:
+                 fieldRef:
+                   fieldPath: status.hostIP
           ports:
             - containerPort: {{ .Values.service.internalPort }}
           livenessProbe:
