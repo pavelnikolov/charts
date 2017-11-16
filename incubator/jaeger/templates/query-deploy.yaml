@@ -38,16 +38,16 @@ spec:
         env:
           - name: SPAN_STORAGE_TYPE
             value: {{ .Values.storage.type }}
-          {{ if eq .Values.storage.type "cassandra" }}
+          {{- if eq .Values.storage.type "cassandra" }}
           - name: CASSANDRA_SERVERS
             value: {{ template "cassandra.fullname" . }}
           - name: CASSANDRA_KEYSPACE
             value: jaeger_v1_{{ .Values.cassandra.config.dc_name }}
-          {{ end }}
-          {{ if eq .Values.storage.type "elasticsearch" }}
+          {{- end }}
+          {{- if eq .Values.storage.type "elasticsearch" }}
           - name: ES_SERVER_URLS
             value: {{ template "elasticsearch.client.url" . }}
-          {{ end }}
+          {{- end }}
         ports:
         - containerPort: {{ .Values.query.service.targetPort }}
           protocol: TCP

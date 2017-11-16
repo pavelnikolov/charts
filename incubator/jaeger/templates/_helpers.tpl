@@ -33,12 +33,12 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 */}}
 {{- define "elasticsearch.client.url" -}}
 {{- $scheme := .Values.storage.elasticsearch.scheme -}}
-{{- $host := "" -}}
+{{- $port := .Values.storage.elasticsearch.port -}}
 {{- if .Values.provisionDataStore.elasticsearch }}
 {{- $host := printf "%s-%s-%s" .Release.Name "elasticsearch" "client" | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s://%s:%s" $scheme $host $port }}
 {{- else }}
 {{- $host := .Values.storage.elasticsearch.host -}}
-{{- end }}
-{{- $port := .Values.storage.elasticsearch.port -}}
 {{- printf "%s://%s:%s" $scheme $host $port }}
+{{- end }}
 {{- end -}}

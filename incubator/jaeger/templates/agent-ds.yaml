@@ -41,10 +41,19 @@ spec:
         ports:
         - containerPort: {{ .Values.agent.service.zipkinThriftPort }}
           protocol: UDP
+          {{- if .Values.agent.daemonset.useHostPort }}
+          hostPort: {{ .Values.agent.service.zipkinThriftPort }}
+          {{- end }}
         - containerPort: {{ .Values.agent.service.compactPort }}
           protocol: UDP
+          {{- if .Values.agent.daemonset.useHostPort }}
+          hostPort: {{ .Values.agent.service.compactPort }}
+          {{- end }}
         - containerPort: {{ .Values.agent.service.binaryPort }}
           protocol: UDP
+          {{- if .Values.agent.daemonset.useHostPort }}
+          hostPort: {{ .Values.agent.service.binaryPort }}
+          {{- end }}
         resources:
 {{ toYaml .Values.agent.resources | indent 10 }}
 {{- end -}}
