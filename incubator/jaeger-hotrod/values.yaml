@@ -5,7 +5,7 @@ replicaCount: 1
 image:
   repository: mikelorant/jaeger-hotrod
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 service:
   name: hotrod
   type: ClusterIP

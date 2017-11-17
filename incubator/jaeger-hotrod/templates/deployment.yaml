@@ -21,9 +21,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: AGENT_HOST
-               valueFrom:
-                 fieldRef:
-                   fieldPath: status.hostIP
+                valueFrom:
+                  fieldRef:
+                    fieldPath: status.hostIP
           ports:
             - containerPort: {{ .Values.service.internalPort }}
           livenessProbe:
